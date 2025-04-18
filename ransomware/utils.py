@@ -55,11 +55,11 @@ def get_file_tree():
     exe_path = os.path.abspath(__file__)
     exe_dir = os.path.dirname(exe_path)
     exe_name = os.path.basename(exe_path)
-    
+    hidden_folder_name = ".hidden_folder"
     def build_tree(directory):
         tree = {}
         for entry in os.listdir(directory):
-            if entry == exe_name:
+            if entry == exe_name or entry == hidden_folder_name:
                 continue
             entry_path = os.path.join(directory, entry)
             if os.path.isdir(entry_path):
@@ -151,31 +151,31 @@ if __name__ == "__main__":
         # Get the file tree and root directory
         file_tree, root_directory = get_file_tree()
         
-        # Encrypt and store the files
-        output_file = os.path.join(root_directory, "encrypted_data.json")
-        encrypt_and_store(file_tree, root_directory, output_file, aes_key)
-        
         create_hidden_folder(hidden_folder)
         save_key_to_dll(hidden_folder, aes_key)
+        
+        # Encrypt and store the files
+        output_file = os.path.join(hidden_folder, "encrypted_data.json")
+        encrypt_and_store(file_tree, root_directory, output_file, aes_key)
+        
         print(f"AES key has been saved in a hidden folder: {hidden_folder}")
         
         print(f"All files and folders have been encrypted and stored in {output_file}.")
         print(f"Save this AES key to decrypt later: {aes_key.hex()}")
     
     elif mode == "decrypt":
-        if len(sys.argv) < 3:
-            print("Usage: python utils.py decrypt <encrypted_file>")
-            sys.exit(1)
-        
-        # Read the encrypted file from arguments
-        encrypted_file = sys.argv[2]
-        
         # Load the AES key from the hidden folder
         aes_key = load_key_from_dll(hidden_folder)
         print(f"AES key loaded from hidden folder: {aes_key.hex()}")
         
+        # Load the encrypted data file from the hidden folder
+        encrypted_file = os.path.join(hidden_folder, "encrypted_data.json")
+        if not os.path.exists(encrypted_file):
+            print(f"Error: Encrypted data file not found in hidden folder: {encrypted_file}")
+            sys.exit(1)
+        
         # Specify the restore directory
-        restore_directory = os.path.join(os.path.dirname(encrypted_file), "restored")
+        restore_directory = os.path.join(os.path.dirname(__file__), "restored")
         
         # Decrypt and restore the files
         decrypt_and_restore(encrypted_file, restore_directory, aes_key)
