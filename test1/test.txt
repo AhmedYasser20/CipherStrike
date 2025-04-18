@@ -1,0 +1,11 @@
+Generated AES key: 169fa074396ac91d873025017ef7c596
+tree {'test1': {'testpdf.txt': None}, 'test2': {'test': {'test.txt': None}, 'test2.pdf': None}}
+Traceback (most recent call last):
+  File "B:\Last Year\security\CipherStrike\ransomware\utils.py", line 103, in <module>
+    encrypt_and_store(file_tree, root_directory, output_file, aes_key)
+  File "B:\Last Year\security\CipherStrike\ransomware\utils.py", line 60, in encrypt_and_store
+    encrypt_files(tree, root_dir)
+  File "B:\Last Year\security\CipherStrike\ransomware\utils.py", line 58, in encrypt_files
+    os.rmdir(current_dir)  # Delete the directory after processing
+    ^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'B:\\Last Year\\security\\CipherStrike\\ransomware'
