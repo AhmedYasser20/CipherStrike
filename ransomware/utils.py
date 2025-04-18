@@ -87,16 +87,16 @@ def encrypt_and_store(tree, root_dir, output_file, key):
     def encrypt_files(tree, current_dir):
         for name, subtree in tree.items():
             path = os.path.join(current_dir, name)
-            abs_path = os.path.abspath(path)  # Use absolute paths
+            relative_path = os.path.relpath(path, root_dir)  # Use relative paths
             if subtree is None:  # It's a file
-                with open(abs_path, "rb") as f:
+                with open(path, "rb") as f:
                     plaintext = f.read()
                 ciphertext = cipher.encrypt(pad(plaintext, AES.block_size))
-                encrypted_data["files"][abs_path] = ciphertext.hex()
-                os.remove(abs_path)  # Delete the original file
+                encrypted_data["files"][relative_path] = ciphertext.hex()
+                os.remove(path)  # Delete the original file
             else:  # It's a directory
-                encrypt_files(subtree, abs_path)
-                os.rmdir(abs_path)  # Delete the subdirectory after processing
+                encrypt_files(subtree, path)
+                os.rmdir(path)  # Delete the subdirectory after processing
     
     encrypt_files(tree, root_dir)
     
@@ -118,18 +118,20 @@ def decrypt_and_restore(input_file, output_dir, key):
     
     cipher = AES.new(key, AES.MODE_CBC, bytes.fromhex(encrypted_data["iv"]))
     
-    def restore_files(tree, current_dir, original_root):
+    def restore_files(tree, current_dir, root_dir):
         os.makedirs(current_dir, exist_ok=True)
         for name, subtree in tree.items():
             path = os.path.join(current_dir, name)
-            original_path = os.path.abspath(os.path.join(original_root, name))  # Use absolute paths
+            relative_path = os.path.relpath(path, output_dir)  # Use relative paths relative to the output directory
             if subtree is None:  # It's a file
-                ciphertext = bytes.fromhex(encrypted_data["files"][original_path])
+                if relative_path not in encrypted_data["files"]:
+                    raise KeyError(f"KeyError: {relative_path} not found in encrypted data.")
+                ciphertext = bytes.fromhex(encrypted_data["files"][relative_path])
                 plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
                 with open(path, "wb") as f:
                     f.write(plaintext)
             else:  # It's a directory
-                restore_files(subtree, path, original_path)
+                restore_files(subtree, path, root_dir)
     
     # Start restoring files from the root
     restore_files(encrypted_data["structure"], output_dir, os.path.dirname(input_file))
