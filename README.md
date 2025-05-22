@@ -2,6 +2,7 @@
 # Ransomware Simulation
 
 <p align="center"> <img src="https://github.com/user-attachments/assets/a10c5c2f-1147-4cf3-9a3e-da1aa82d0c37" alt="CipherStrike Logo" width="400" height="400"> </p>
+
 ## Overview
 This project is a **ransomware simulation** developed as part of a **security course** to demonstrate the behavior and impact of ransomware. It is intended for **educational purposes only** and provides insights into how ransomware encrypts files, creates ransom notes, and implements decryption mechanisms.
 
@@ -49,6 +50,7 @@ This project is a **simulation** created for a **security course**. It is intend
 # CipherStrike Ransomware Scanner
 
 <p align="center"> <img src="https://github.com/user-attachments/assets/67653590-c612-466c-bfd5-8ca4e8866d90" alt="CipherStrike Logo" width="400" height="400"> </p>
+
 ## Overview
 This project is developed as part of a **security course** to demonstrate the detection of ransomware and malicious software using YARA rules and entropy analysis. It is intended for **educational purposes only** and showcases techniques for identifying suspicious behaviors in executable files.
 
